@@ -4,12 +4,14 @@ const Database = require("better-sqlite3");
 const config = require("../config");
 
 const dataDir = path.dirname(config.databasePath);
+
 // Ensure the SQLite data directory exists before startup continues.
 fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(config.databasePath);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
+
 // Retire the removed offline imagery feature from existing local databases.
 db.exec("DROP TABLE IF EXISTS offline_maps");
 
@@ -173,6 +175,7 @@ ensureColumn("cleaning_photos", "date_source", "TEXT NOT NULL DEFAULT 'manual'")
 db.exec(`UPDATE cleaning_photos SET photo_date = (
   SELECT visit_date FROM cleaning_sessions WHERE session_id = cleaning_photos.session_id
 ) WHERE photo_date = ''`);
+
 // Locally maintained cemetery details are intentionally separate from imported fields.
 for (const column of [
   "owner_name", "owner_type", "owner_contact", "permission_status",
@@ -180,6 +183,7 @@ for (const column of [
 ]) {
   ensureColumn("cemeteries", column, "TEXT NOT NULL DEFAULT ''");
 }
+
 ensureColumn("imports", "total_memorials", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("imports", "processed_memorials", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("imports", "progress_percent", "INTEGER NOT NULL DEFAULT 0");

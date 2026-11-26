@@ -50,6 +50,7 @@ async function hasInternetConnection(targetUrl) {
       cache: "no-store",
       signal: controller.signal
     });
+
     return true;
   } catch (_error) {
     return false;
@@ -169,6 +170,7 @@ if (importForm) {
       percent: 2,
       message: "Creating the import job and preparing the first request."
     });
+
     openModal();
 
     try {

@@ -29,8 +29,10 @@ const config = {
     baseUrl: "https://www.findagrave.com",
     graphqlUrl: "https://www.findagrave.com/orc/graphql",
     memorialPageSize: Number.parseInt(process.env.MEMORIAL_PAGE_SIZE ?? "100", 10),
+
     // Baseline pause between page requests.
     requestDelayMs: Number.parseInt(process.env.REQUEST_DELAY_MS ?? "2000", 10),
+
     // Extra cooldown after every few requests to reduce the chance of upstream rate limiting.
     cooldownEveryRequests: Number.parseInt(process.env.REQUEST_COOLDOWN_EVERY ?? "3", 10),
     cooldownMinMs: Number.parseInt(process.env.REQUEST_COOLDOWN_MIN_MS ?? "3000", 10),
@@ -49,10 +51,19 @@ const settings = require("./settings");
 config.settingsPath = path.join(process.env.GRAVESITE_CONFIG_FOLDER || path.dirname(config.databasePath), "settings.json");
 try {
   const saved = settings.read(config.settingsPath);
-  if (saved.host !== undefined) config.host = saved.host;
-  if (saved.port !== undefined) config.port = saved.port;
+
+  if (saved.host !== undefined) {
+    config.host = saved.host;
+  }
+
+  if (saved.port !== undefined) {
+    config.port = saved.port;
+  }
+
   for (const key of Object.keys(settings.numericFields)) {
-    if (key !== "port" && saved[key] !== undefined) config.findAGrave[key] = saved[key];
+    if (key !== "port" && saved[key] !== undefined) {
+      config.findAGrave[key] = saved[key];
+    }
   }
 } catch (error) {
   config.settingsError = `Saved settings could not be loaded: ${error.message}`;

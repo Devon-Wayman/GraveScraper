@@ -9,6 +9,7 @@ const config = require("../config");
 async function exportReport(res, memorial) {
   const events = cleaning.timeline(memorial.memorial_id);
   const files = [];
+
   const exported = events.map(event => {
     if (event.type !== "photo") return event;
     const row = cleaning.getPhotoFile(event.photo_id);
@@ -16,8 +17,12 @@ async function exportReport(res, memorial) {
     files.push({ source: path.join(config.uploadsPath, row.filename), name });
     return { ...event, url: name, thumbnail_url: name };
   });
+
   // Missing files fail before sending a partial archive presented as a valid report.
-  for (const file of files) await fs.access(file.source);
+  for (const file of files) {
+    await fs.access(file.source);
+  }
+
   const report = await ejs.renderFile(path.join(__dirname, "../views/timeline.ejs"), { memorial, events: exported, offline: true });
   const archive = new ZipFile();
   archive.on("error", error => archive.outputStream.destroy(error));
@@ -25,7 +30,11 @@ async function exportReport(res, memorial) {
   const completion = pipeline(archive.outputStream, res);
   archive.addBuffer(Buffer.from(report), "report.html");
   archive.addBuffer(Buffer.from(JSON.stringify({ memorial_id: memorial.memorial_id, name: memorial.full_name, cemetery: memorial.cemetery_name, events: exported }, null, 2)), "timeline.json");
-  for (const file of files) archive.addFile(file.source, file.name, { compress: false });
+
+  for (const file of files) {
+    archive.addFile(file.source, file.name, { compress: false });
+  }
+
   archive.end();
   await completion;
 }

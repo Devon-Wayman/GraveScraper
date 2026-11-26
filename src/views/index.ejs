@@ -45,82 +45,85 @@
 
                 <%- include("partials/active-cleaning", { activeCleaning }) %>
 
-                <section class="grid">
-                  <article class="panel">
-                    <div class="panel-header">
-                      <h2>Cemeteries</h2>
-                      <span>
-                        <%= cemeteries.length %> stored
-                      </span>
-                    </div>
+                  <section class="grid">
+                    <article class="panel">
+                      <div class="panel-header">
+                        <h2>Cemeteries</h2>
+                        <span>
+                          <%= cemeteries.length %> stored
+                        </span>
+                      </div>
 
-                    <% if (cemeteries.length===0) { %>
-                      <p class="empty">No cemeteries imported yet.</p>
-                      <% } else { %>
-                        <div class="export-actions">
-                          <span class="subtle">All memorials</span>
-                          <a class="action-link" href="/exports/memorials.csv">CSV</a>
-                          <a class="action-link" href="/exports/memorials.kml">KML</a>
-                          <a class="action-link" href="/exports/memorials.xml">XML</a>
-                        </div>
-                        <div class="list">
-                          <% cemeteries.forEach((cemetery)=> { %>
-                            <div class="list-item">
-                              <a class="item-title" href="/cemeteries/<%= cemetery.cemetery_id %>">
-                                <%= cemetery.cemetery_name %>
-                              </a>
-                              <span>ID <%= cemetery.cemetery_id %></span>
-                              <span>
-                                <%= cemetery.stored_memorials %> memorials stored
-                              </span>
-                              <div class="item-actions">
-                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.csv">CSV</a>
-                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.kml">KML</a>
-                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.xml">XML</a>
-                                <form action="/cemeteries/<%= cemetery.cemetery_id %>/delete" method="post"
-                                  class="inline-form">
-                                  <button type="submit" class="danger-button compact-button"
-                                    data-cemetery-name="<%= cemetery.cemetery_name %>"
-                                    onclick="return confirm(`Delete ${this.dataset.cemeteryName}, its memorials, cleaning history, and uploaded photos?`);">
-                                    Delete
-                                  </button>
-                                </form>
+                      <% if (cemeteries.length===0) { %>
+                        <p class="empty">No cemeteries imported yet.</p>
+                        <% } else { %>
+                          <div class="export-actions">
+                            <span class="subtle">All memorials</span>
+                            <a class="action-link" href="/exports/memorials.csv">CSV</a>
+                            <a class="action-link" href="/exports/memorials.kml">KML</a>
+                            <a class="action-link" href="/exports/memorials.xml">XML</a>
+                          </div>
+                          <div class="list">
+                            <% cemeteries.forEach((cemetery)=> { %>
+                              <div class="list-item">
+                                <a class="item-title" href="/cemeteries/<%= cemetery.cemetery_id %>">
+                                  <%= cemetery.cemetery_name %>
+                                </a>
+                                <span>ID <%= cemetery.cemetery_id %></span>
+                                <span>
+                                  <%= cemetery.stored_memorials %> memorials stored
+                                </span>
+                                <div class="item-actions">
+                                  <a class="action-link"
+                                    href="/cemeteries/<%= cemetery.cemetery_id %>/export.csv">CSV</a>
+                                  <a class="action-link"
+                                    href="/cemeteries/<%= cemetery.cemetery_id %>/export.kml">KML</a>
+                                  <a class="action-link"
+                                    href="/cemeteries/<%= cemetery.cemetery_id %>/export.xml">XML</a>
+                                  <form action="/cemeteries/<%= cemetery.cemetery_id %>/delete" method="post"
+                                    class="inline-form">
+                                    <button type="submit" class="danger-button compact-button"
+                                      data-cemetery-name="<%= cemetery.cemetery_name %>"
+                                      onclick="return confirm(`Delete ${this.dataset.cemeteryName}, its memorials, cleaning history, and uploaded photos?`);">
+                                      Delete
+                                    </button>
+                                  </form>
+                                </div>
                               </div>
-                            </div>
-                            <% }) %>
-                        </div>
-                        <% } %>
-                  </article>
+                              <% }) %>
+                          </div>
+                          <% } %>
+                    </article>
 
-                  <article class="panel">
-                    <div class="panel-header">
-                      <h2>Recent imports</h2>
-                      <span>
-                        <%= imports.length %> runs
-                      </span>
-                    </div>
+                    <article class="panel">
+                      <div class="panel-header">
+                        <h2>Recent imports</h2>
+                        <span>
+                          <%= imports.length %> runs
+                        </span>
+                      </div>
 
-                    <% if (imports.length===0) { %>
-                      <p class="empty">No imports have run yet.</p>
-                      <% } else { %>
-                        <div class="list">
-                          <% imports.forEach((item)=> { %>
-                            <div class="list-item static">
-                              <strong>
-                                <%= item.cemetery_name %>
-                              </strong>
-                              <span>
-                                <%= item.status %> at <%= item.started_at %>
-                              </span>
-                              <span>
-                                <%= item.message || "No message" %>
-                              </span>
-                            </div>
-                            <% }) %>
-                        </div>
-                        <% } %>
-                  </article>
-                </section>
+                      <% if (imports.length===0) { %>
+                        <p class="empty">No imports have run yet.</p>
+                        <% } else { %>
+                          <div class="list">
+                            <% imports.forEach((item)=> { %>
+                              <div class="list-item static">
+                                <strong>
+                                  <%= item.cemetery_name %>
+                                </strong>
+                                <span>
+                                  <%= item.status %> at <%= item.started_at %>
+                                </span>
+                                <span>
+                                  <%= item.message || "No message" %>
+                                </span>
+                              </div>
+                              <% }) %>
+                          </div>
+                          <% } %>
+                    </article>
+                  </section>
       </main>
 
       <div class="modal-backdrop" id="importModal" hidden>

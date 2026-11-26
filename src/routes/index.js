@@ -49,6 +49,7 @@ function sendMemorialExport(res, memorials, format, documentName) {
     "Content-Disposition",
     `attachment; filename="${buildExportFilename(documentName, "xml")}"`
   );
+
   res.type("application/xml");
   res.send(buildXml(memorials, documentName));
 }
@@ -140,6 +141,7 @@ router.post("/cemeteries/:cemeteryId", (req, res) => {
     ownerRequirements: String(req.body.ownerRequirements ?? "").trim(),
     userNotes: String(req.body.userNotes ?? "").trim()
   });
+
   res.redirect(`/cemeteries/${encodeURIComponent(cemetery.cemetery_id)}?message=Cemetery%20details%20saved.#cemetery-details`);
 });
 
@@ -187,11 +189,17 @@ router.get("/memorials/:memorialId", (req, res) => {
 
 router.post("/memorials/:memorialId/cleaning-project", (req, res) => {
   const memorial = repositories.getMemorialById(req.params.memorialId);
-  if (!memorial) return res.status(404).render("404");
+
+  if (!memorial) {
+    return res.status(404).render("404");
+  }
+
   const status = String(req.body.cleaningWorkStatus ?? "");
+
   if (!MEMORIAL_FIELD_OPTIONS.cleaningWorkStatuses.some(option => option.value === status)) {
     return res.status(400).render("action-error", { message: "Choose a valid cleaning project status." });
   }
+
   repositories.setCleaningWorkStatus(memorial.memorial_id, status);
   const target = req.body.returnTo === "dashboard" ? "/" : `/memorials/${memorial.memorial_id}`;
   res.redirect(`${target}?message=Cleaning%20project%20status%20saved.${target === "/" ? "#active-cleaning" : "#cleaning-history"}`);

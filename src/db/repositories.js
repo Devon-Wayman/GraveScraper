@@ -627,13 +627,19 @@ function setCleaningWorkStatus(memorialId, status) {
 function getActiveCleaning({ search = "", page = 1 } = {}) {
   const condition = `(m.cleaning_work_status IN ('active', 'monitoring') OR
     (m.cleaning_work_status = '' AND EXISTS (SELECT 1 FROM cleaning_sessions s WHERE s.memorial_id = m.memorial_id)))`;
+
   const query = String(search).trim();
+
   const filter = `${condition} AND (instr(lower(COALESCE(m.full_name, '')), lower(@search)) > 0
     OR instr(lower(c.cemetery_name), lower(@search)) > 0 OR instr(CAST(m.memorial_id AS TEXT), @search) > 0)`;
+
   const totalActive = db.prepare(`SELECT COUNT(*) AS total FROM memorials m WHERE ${condition}`).get().total;
+
   const total = db.prepare(`SELECT COUNT(*) AS total FROM memorials m JOIN cemeteries c ON c.cemetery_id = m.cemetery_id WHERE ${filter}`).get({ search: query }).total;
+
   const totalPages = Math.max(1, Math.ceil(total / 12));
   page = Math.min(Math.max(1, Number.isSafeInteger(page) ? page : 1), totalPages);
+
   const memorials = db.prepare(`SELECT m.memorial_id, m.full_name, m.cemetery_id, m.google_maps_link,
     c.cemetery_name, CASE WHEN m.cleaning_work_status = '' THEN 'active' ELSE m.cleaning_work_status END AS work_status,
     MAX(COALESCE((SELECT MAX(visit_date) FROM cleaning_sessions s WHERE s.memorial_id = m.memorial_id), ''),
@@ -762,17 +768,24 @@ function deleteCemeteryById(cemeteryId) {
   const photos = db.prepare(`SELECT p.filename FROM cleaning_photos p
     JOIN cleaning_sessions s ON s.session_id = p.session_id
     JOIN memorials m ON m.memorial_id = s.memorial_id WHERE m.cemetery_id = ?`).all(cemeteryId);
+
   const result = db.prepare(`
     DELETE FROM cemeteries
     WHERE cemetery_id = ?
   `).run(cemeteryId);
+
   const fs = require("node:fs");
   const path = require("node:path");
   const config = require("../config");
+
   for (const { filename } of photos) {
     for (const name of [filename, `thumb-${filename}`]) {
-      try { fs.rmSync(path.join(config.uploadsPath, name), { force: true }); }
-      catch (error) { console.error("Unable to remove deleted cemetery photo:", error.message); }
+      try {
+        fs.rmSync(path.join(config.uploadsPath, name), { force: true });
+      }
+      catch (error) {
+        console.error("Unable to remove deleted cemetery photo:", error.message);
+      }
     }
   }
   return result;

@@ -240,6 +240,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
         skip,
         requestsMade
       };
+
       onProgress?.({
         phase: "stalled",
         processed: memorials.length,
@@ -259,6 +260,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
         skip,
         requestsMade
       };
+
       onProgress?.({
         phase: "stalled",
         processed: memorials.length,
@@ -273,6 +275,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
     }
 
     memorials.push(...newItems);
+
     onProgress?.({
       phase: "scraping",
       processed: Math.min(memorials.length, totalMemorials),
@@ -284,6 +287,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
     });
 
     const hasMoreRequests = requestsMade < totalRequests;
+
     if (!hasMoreRequests) {
       continue;
     }
@@ -293,6 +297,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
         config.findAGrave.cooldownMinMs,
         config.findAGrave.cooldownMaxMs
       );
+
       onProgress?.({
         phase: "cooldown",
         processed: Math.min(memorials.length, totalMemorials),
@@ -303,6 +308,7 @@ async function fetchAllMemorials(cemeteryId, totalMemorials, options = {}) {
         totalRequests,
         cooldownMs
       });
+
       await sleep(cooldownMs);
       continue;
     }

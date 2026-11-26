@@ -1,44 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Settings | GraveScraper</title><link rel="stylesheet" href="/styles.css" /></head>
-<body>
-  <%- include("partials/nav") %>
-  <main class="shell narrow">
-    <h1>Settings</h1>
-    <% if (message) { %><p class="flash success" role="status"><%= message %></p><% } %>
-    <% if (error) { %><p class="flash error" role="alert"><%= error %></p><% } %>
-    <% if (warning) { %><p class="flash error" role="alert"><%= warning %></p><% } %>
-    <section class="panel">
-      <h2>Network access</h2>
-      <p>Settings are saved on this computer and kept across app updates. Changes take effect after restarting.</p>
-      <% if (network) { %>
-        <p>Currently listening on <strong><%= network.host %>:<%= network.port %></strong>.</p>
-        <p>Connection addresses on this computer:</p>
-        <ul><% urls.forEach(url => { %><li><a href="<%= url %>"><%= url %></a></li><% }) %></ul>
-        <p class="hint">Use an address your phone can reach. Firewall and Tailscale rules still apply.</p>
-      <% } %>
-      <form method="post" action="/settings" class="stacked-form">
-        <label for="host">Listen address</label>
-        <input id="host" name="host" value="<%= values.host %>" list="listen-addresses" required autocapitalize="off" spellcheck="false" />
-        <datalist id="listen-addresses"><option value="127.0.0.1">This computer only</option><option value="0.0.0.0">LAN and Tailscale (all IPv4 interfaces)</option></datalist>
-        <p class="hint"><strong>127.0.0.1:</strong> this computer only. <strong>0.0.0.0:</strong> LAN and Tailscale IPv4 addresses. Enter the computer’s Tailscale IP to listen only on that address.</p>
-        <p class="hint">With no app password, anyone who can reach a listening address can view and edit data. All interfaces includes every connected IPv4 network.</p>
-        <label for="port">Port</label>
-        <input id="port" name="port" type="number" min="1" max="65535" value="<%= values.port %>" required />
-        <details>
-          <summary>Import pacing</summary>
-          <p class="hint">These values control FindAGrave requests. Keep delays between requests to avoid rate limits.</p>
-          <div class="form-grid">
-            <% Object.entries(numericFields).filter(([key]) => key !== "port").forEach(([key, field]) => { %>
-              <div><label for="<%= key %>"><%= field.label %></label><input id="<%= key %>" name="<%= key %>" type="number" min="<%= field.min %>" max="<%= field.max %>" value="<%= values[key] %>" required /></div>
-            <% }) %>
-          </div>
-        </details>
-        <button type="submit">Save settings</button>
-      </form>
-      <p><% if (desktop) { %>After saving, choose <strong>GraveScraper → Restart to apply settings</strong> from the app menu.<% } else { %>After saving, stop and restart the Node server to apply changes.<% } %></p>
-      <p class="hint">Stored in <%= settingsPath %></p>
-    </section>
-  </main>
-</body>
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings | GraveScraper</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+
+  <body>
+    <%- include("partials/nav") %>
+      <main class="shell narrow">
+        <h1>Settings</h1>
+        <% if (message) { %>
+          <p class="flash success" role="status">
+            <%= message %>
+          </p>
+          <% } %>
+            <% if (error) { %>
+              <p class="flash error" role="alert">
+                <%= error %>
+              </p>
+              <% } %>
+                <% if (warning) { %>
+                  <p class="flash error" role="alert">
+                    <%= warning %>
+                  </p>
+                  <% } %>
+                    <section class="panel">
+                      <h2>Network access</h2>
+                      <p>Settings are saved on this computer and kept across app updates. Changes take effect after
+                        restarting.</p>
+                      <% if (network) { %>
+                        <p>Currently listening on <strong>
+                            <%= network.host %>:<%= network.port %>
+                          </strong>.</p>
+                        <p>Connection addresses on this computer:</p>
+                        <ul>
+                          <% urls.forEach(url=> { %><li><a href="<%= url %>">
+                                <%= url %>
+                              </a></li>
+                            <% }) %>
+                        </ul>
+                        <p class="hint">Use an address your phone can reach. Firewall and Tailscale rules still apply.
+                        </p>
+                        <% } %>
+                          <form method="post" action="/settings" class="stacked-form">
+                            <label for="host">Listen address</label>
+                            <input id="host" name="host" value="<%= values.host %>" list="listen-addresses" required
+                              autocapitalize="off" spellcheck="false" />
+                            <datalist id="listen-addresses">
+                              <option value="127.0.0.1">This computer only</option>
+                              <option value="0.0.0.0">LAN and Tailscale (all IPv4 interfaces)</option>
+                            </datalist>
+                            <p class="hint"><strong>127.0.0.1:</strong> this computer only. <strong>0.0.0.0:</strong>
+                              LAN and Tailscale IPv4 addresses. Enter the computer’s Tailscale IP to listen only on that
+                              address.</p>
+                            <p class="hint">With no app password, anyone who can reach a listening address can view and
+                              edit data. All interfaces includes every connected IPv4 network.</p>
+                            <label for="port">Port</label>
+                            <input id="port" name="port" type="number" min="1" max="65535" value="<%= values.port %>"
+                              required />
+                            <details>
+                              <summary>Import pacing</summary>
+                              <p class="hint">These values control FindAGrave requests. Keep delays between requests to
+                                avoid rate limits.</p>
+                              <div class="form-grid">
+                                <% Object.entries(numericFields).filter(([key])=> key !== "port").forEach(([key, field])
+                                  => { %>
+                                  <div><label for="<%= key %>">
+                                      <%= field.label %>
+                                    </label><input id="<%= key %>" name="<%= key %>" type="number"
+                                      min="<%= field.min %>" max="<%= field.max %>" value="<%= values[key] %>"
+                                      required /></div>
+                                  <% }) %>
+                              </div>
+                            </details>
+                            <button type="submit">Save settings</button>
+                          </form>
+                          <p>
+                            <% if (desktop) { %>After saving, choose <strong>GraveScraper → Restart to apply
+                                settings</strong> from the app menu.<% } else { %>After saving, stop and restart the
+                                Node server to apply changes.<% } %>
+                          </p>
+                          <p class="hint">Stored in <%= settingsPath %>
+                          </p>
+                    </section>
+      </main>
+  </body>
+
 </html>

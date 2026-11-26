@@ -24,7 +24,8 @@ ipcMain.on('grave-browser:navigate', (event, action) => {
 
 function createExternalBrowser(url, { show = true } = {}) {
   if (!isWebUrl(url)) return null;
-  const window = new BrowserWindow({ width: 1200, height: 900, minWidth: 540, minHeight: 400, show,
+  const window = new BrowserWindow({
+    width: 1200, height: 900, minWidth: 540, minHeight: 400, show,
     title: 'GraveScraper Browser', autoHideMenuBar: false,
     webPreferences: { preload: path.join(__dirname, 'browser-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });

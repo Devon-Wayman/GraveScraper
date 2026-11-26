@@ -23,6 +23,7 @@ function reportProgress(importId, update) {
 async function runImport(importId, cemeteryUrl, options = {}) {
   const { isRefresh = false } = options;
   const { cemeteryId, cemeteryUrl: normalizedUrl } = parseCemeteryUrl(cemeteryUrl);
+
   reportProgress(importId, {
     status: "running",
     message: isRefresh
@@ -57,6 +58,7 @@ async function runImport(importId, cemeteryUrl, options = {}) {
 
   const { memorials, stopReason } = await fetchAllMemorials(cemetery.cemetery_id, cemetery.memorial_count, {
     onProgress: ({ phase, processed, total, requestsMade, totalRequests, cooldownMs, stopReason: nextStopReason }) => {
+
       // Reserve the last few percent for the database sync step so progress feels less jumpy.
       const progressPercent = Math.max(10, Math.min(95, Math.round((processed / total) * 85) + 10));
 
@@ -124,13 +126,14 @@ async function runImport(importId, cemeteryUrl, options = {}) {
   });
 
   const syncSummary = repositories.syncMemorialsForCemetery(cemetery.cemetery_id, memorials);
+
   const stopSummary = stopReason
-    ? `Stopped early because ${
-      stopReason.type === "empty_page"
-        ? `FindAGrave returned an empty page at skip ${stopReason.skip}`
-        : `FindAGrave stopped returning new records at skip ${stopReason.skip}`
+    ? `Stopped early because ${stopReason.type === "empty_page"
+      ? `FindAGrave returned an empty page at skip ${stopReason.skip}`
+      : `FindAGrave stopped returning new records at skip ${stopReason.skip}`
     }.`
     : "";
+
   const summaryMessage = isRefresh
     ? `Refresh complete. ${syncSummary.inserted} added, ${syncSummary.updated} updated, ${syncSummary.unchanged} unchanged, ${syncSummary.deleted} removed. ${stopSummary}`.trim()
     : `Import complete. ${syncSummary.inserted} added, ${syncSummary.updated} updated, ${syncSummary.deleted} removed. ${stopSummary}`.trim();
@@ -151,6 +154,7 @@ async function runImport(importId, cemeteryUrl, options = {}) {
 
 // Creates the import row now, then lets the actual work continue asynchronously.
 function startImportFromUrl(cemeteryUrl) {
+
   const { cemeteryId, cemeterySlug, cemeteryUrl: normalizedUrl } = parseCemeteryUrl(cemeteryUrl);
   const existingCemetery = repositories.getCemeteryById(cemeteryId);
 
@@ -169,6 +173,7 @@ function startImportFromUrl(cemeteryUrl) {
   }
 
   const importId = repositories.createImport({ cemeteryId });
+
   reportProgress(importId, {
     message: existingCemetery
       ? `Existing cemetery found: ${existingCemetery.cemetery_name}. Starting refresh.`

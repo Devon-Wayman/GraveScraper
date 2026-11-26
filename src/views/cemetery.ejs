@@ -37,182 +37,198 @@
         </section>
 
         <% if (message) { %>
-          <div class="flash success" role="status"><%= message %></div>
-        <% } %>
-
-        <section class="panel" id="cemetery-details">
-          <div class="panel-header">
-            <h2>Ownership &amp; cleaning permission</h2>
-            <span class="pill"><%= fieldOptions.permissionStatuses.find(option => option.value === cemetery.permission_status)?.label || "Not started / not confirmed" %></span>
+          <div class="flash success" role="status">
+            <%= message %>
           </div>
-          <p class="hint">Record who manages this cemetery, permission progress, and any requirements for cleaning stones. These details are kept when you fetch updates.</p>
-          <form action="/cemeteries/<%= cemetery.cemetery_id %>" method="post" class="stacked-form">
-            <div class="form-grid">
-              <div>
-                <label for="ownerName">Owner / managing person or organization</label>
-                <input id="ownerName" name="ownerName" value="<%= cemetery.owner_name %>" placeholder="Person, cemetery association, church, or city" />
+          <% } %>
+
+            <section class="panel" id="cemetery-details">
+              <div class="panel-header">
+                <h2>Ownership &amp; cleaning permission</h2>
+                <span class="pill">
+                  <%= fieldOptions.permissionStatuses.find(option=> option.value === cemetery.permission_status)?.label
+                    || "Not started / not confirmed" %>
+                </span>
               </div>
-              <div>
-                <label for="ownerType">Owner type</label>
-                <select id="ownerType" name="ownerType">
-                  <% fieldOptions.ownerTypes.forEach(option => { %>
-                    <option value="<%= option.value %>" <%= cemetery.owner_type === option.value ? "selected" : "" %>><%= option.label %></option>
-                  <% }) %>
+              <p class="hint">Record who manages this cemetery, permission progress, and any requirements for cleaning
+                stones. These details are kept when you fetch updates.</p>
+              <form action="/cemeteries/<%= cemetery.cemetery_id %>" method="post" class="stacked-form">
+                <div class="form-grid">
+                  <div>
+                    <label for="ownerName">Owner / managing person or organization</label>
+                    <input id="ownerName" name="ownerName" value="<%= cemetery.owner_name %>"
+                      placeholder="Person, cemetery association, church, or city" />
+                  </div>
+                  <div>
+                    <label for="ownerType">Owner type</label>
+                    <select id="ownerType" name="ownerType">
+                      <% fieldOptions.ownerTypes.forEach(option=> { %>
+                        <option value="<%= option.value %>" <%=cemetery.owner_type===option.value ? "selected" : "" %>>
+                          <%= option.label %>
+                        </option>
+                        <% }) %>
+                    </select>
+                  </div>
+                </div>
+                <label for="ownerContact">Contact details</label>
+                <textarea id="ownerContact" name="ownerContact" rows="3"
+                  placeholder="Contact person, phone, email, mailing address, or office hours"><%= cemetery.owner_contact %></textarea>
+                <label for="permissionStatus">Cleaning permission status</label>
+                <select id="permissionStatus" name="permissionStatus">
+                  <% fieldOptions.permissionStatuses.forEach(option=> { %>
+                    <option value="<%= option.value %>" <%=cemetery.permission_status===option.value ? "selected" : ""
+                      %>><%= option.label %>
+                    </option>
+                    <% }) %>
                 </select>
-              </div>
-            </div>
-            <label for="ownerContact">Contact details</label>
-            <textarea id="ownerContact" name="ownerContact" rows="3" placeholder="Contact person, phone, email, mailing address, or office hours"><%= cemetery.owner_contact %></textarea>
-            <label for="permissionStatus">Cleaning permission status</label>
-            <select id="permissionStatus" name="permissionStatus">
-              <% fieldOptions.permissionStatuses.forEach(option => { %>
-                <option value="<%= option.value %>" <%= cemetery.permission_status === option.value ? "selected" : "" %>><%= option.label %></option>
-              <% }) %>
-            </select>
-            <label for="permissionProgress">Permission progress &amp; follow-up</label>
-            <textarea id="permissionProgress" name="permissionProgress" rows="4" placeholder="Record dated calls or emails, who granted permission, any expiration date, and next steps"><%= cemetery.permission_progress %></textarea>
-            <label for="ownerRequirements">Owner requests &amp; requirements to follow</label>
-            <textarea id="ownerRequirements" name="ownerRequirements" rows="4" placeholder="Approved stones or areas, allowed methods, visit times, advance notice, or other conditions"><%= cemetery.owner_requirements %></textarea>
-            <label for="cemeteryNotes">Additional cemetery notes</label>
-            <textarea id="cemeteryNotes" name="userNotes" rows="4" placeholder="Access directions, parking, visit observations, or other cemetery information"><%= cemetery.user_notes %></textarea>
-            <button type="submit">Save cemetery details</button>
-          </form>
-        </section>
+                <label for="permissionProgress">Permission progress &amp; follow-up</label>
+                <textarea id="permissionProgress" name="permissionProgress" rows="4"
+                  placeholder="Record dated calls or emails, who granted permission, any expiration date, and next steps"><%= cemetery.permission_progress %></textarea>
+                <label for="ownerRequirements">Owner requests &amp; requirements to follow</label>
+                <textarea id="ownerRequirements" name="ownerRequirements" rows="4"
+                  placeholder="Approved stones or areas, allowed methods, visit times, advance notice, or other conditions"><%= cemetery.owner_requirements %></textarea>
+                <label for="cemeteryNotes">Additional cemetery notes</label>
+                <textarea id="cemeteryNotes" name="userNotes" rows="4"
+                  placeholder="Access directions, parking, visit observations, or other cemetery information"><%= cemetery.user_notes %></textarea>
+                <button type="submit">Save cemetery details</button>
+              </form>
+            </section>
 
-        <section class="stats">
-          <div class="stat"><span>Memorial count</span><strong>
-              <%= cemetery.memorial_count %>
-            </strong></div>
-          <div class="stat"><span>Photographed</span><strong>
-              <%= cemetery.photographed_count %>
-            </strong></div>
-          <div class="stat"><span>GPS count</span><strong>
-              <%= cemetery.gps_count %>
-            </strong></div>
-          <div class="stat"><span>GPS coverage</span><strong>
-              <%= cemetery.percentage_with_gps %>%
-            </strong></div>
-        </section>
+            <section class="stats">
+              <div class="stat"><span>Memorial count</span><strong>
+                  <%= cemetery.memorial_count %>
+                </strong></div>
+              <div class="stat"><span>Photographed</span><strong>
+                  <%= cemetery.photographed_count %>
+                </strong></div>
+              <div class="stat"><span>GPS count</span><strong>
+                  <%= cemetery.gps_count %>
+                </strong></div>
+              <div class="stat"><span>GPS coverage</span><strong>
+                  <%= cemetery.percentage_with_gps %>%
+                </strong></div>
+            </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Memorials</h2>
-            <span>
-              <%= pagination.totalResults %> matching rows
-            </span>
-          </div>
-
-          <form method="get" action="/cemeteries/<%= cemetery.cemetery_id %>" class="filter-bar">
-            <div class="filter-field">
-              <label for="memorialSearch">Search memorials</label>
-              <input id="memorialSearch" name="q" type="search" value="<%= searchQuery %>"
-                placeholder="Name, memorial ID, birth city, death city" />
-            </div>
-            <div class="filter-actions">
-              <button type="submit">Search</button>
-              <% if (searchQuery) { %>
-                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>">Clear</a>
-                <% } %>
-            </div>
-          </form>
-
-          <div class="results-summary">
-            <% if (pagination.totalResults===0) { %>
-              No matching memorials found.
-              <% } else { %>
-                Showing <%= pagination.startRow %>-<%= pagination.endRow %> of <%= pagination.totalResults %>
-                      <% if (searchQuery) { %>
-                        for "<%= searchQuery %>"
-                          <% } %>
-                            <% } %>
-          </div>
-
-          <% if (pagination.totalResults===0) { %>
-            <p class="empty">
-              <% if (searchQuery) { %>
-                Try a broader search or clear the current filter.
-                <% } else { %>
-                  No memorials stored for this cemetery yet.
-                  <% } %>
-            </p>
-            <% } else { %>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Years</th>
-                      <th>Birth city</th>
-                      <th>Death city</th>
-                      <th>Flags</th>
-                      <th>Map</th>
-                      <th>Source</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% memorials.forEach((memorial)=> { %>
-                      <tr>
-                        <td>
-                          <strong>
-                            <a href="/memorials/<%= memorial.memorial_id %>">
-                              <%= memorial.full_name || "Unknown" %>
-                            </a>
-                          </strong>
-                          <div class="subtle">ID <%= memorial.memorial_id %>
-                          </div>
-                        </td>
-                        <td>
-                          <%= memorial.birth_year || "?" %> - <%= memorial.death_year || "?" %>
-                        </td>
-                        <td>
-                          <%= memorial.birth_city_name || "n/a" %>
-                        </td>
-                        <td>
-                          <%= memorial.death_city_name || "n/a" %>
-                        </td>
-                        <td>
-                          <% if (memorial.is_famous) { %><span class="pill">Famous</span>
-                            <% } %>
-                              <% if (memorial.is_veteran) { %><span class="pill">Veteran</span>
-                                <% } %>
-                        </td>
-                        <td>
-                          <% if (memorial.google_maps_link) { %>
-                            <a href="<%= memorial.google_maps_link %>" target="_blank" rel="noreferrer"
-                              data-requires-internet>Open</a>
-                            <% } else { %>
-                              n/a
-                              <% } %>
-                        </td>
-                        <td>
-                          <a class="action-link" href="https://www.findagrave.com/memorial/<%= memorial.memorial_id %>"
-                            target="_blank" rel="noreferrer" data-requires-internet>FindAGrave</a>
-                        </td>
-                      </tr>
-                      <% }) %>
-                  </tbody>
-                </table>
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Memorials</h2>
+                <span>
+                  <%= pagination.totalResults %> matching rows
+                </span>
               </div>
 
-              <div class="pagination-bar">
-                <span class="subtle">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
-                <div class="pagination-links">
-                  <% if (pagination.hasPrevious) { %>
-                    <a class="action-link"
-                      href="/cemeteries/<%= cemetery.cemetery_id %>?page=<%= pagination.page - 1 %><% if (searchQuery) { %>&q=<%= encodeURIComponent(searchQuery) %><% } %>">
-                      Previous
-                    </a>
+              <form method="get" action="/cemeteries/<%= cemetery.cemetery_id %>" class="filter-bar">
+                <div class="filter-field">
+                  <label for="memorialSearch">Search memorials</label>
+                  <input id="memorialSearch" name="q" type="search" value="<%= searchQuery %>"
+                    placeholder="Name, memorial ID, birth city, death city" />
+                </div>
+                <div class="filter-actions">
+                  <button type="submit">Search</button>
+                  <% if (searchQuery) { %>
+                    <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>">Clear</a>
                     <% } %>
-                      <% if (pagination.hasNext) { %>
+                </div>
+              </form>
+
+              <div class="results-summary">
+                <% if (pagination.totalResults===0) { %>
+                  No matching memorials found.
+                  <% } else { %>
+                    Showing <%= pagination.startRow %>-<%= pagination.endRow %> of <%= pagination.totalResults %>
+                          <% if (searchQuery) { %>
+                            for "<%= searchQuery %>"
+                              <% } %>
+                                <% } %>
+              </div>
+
+              <% if (pagination.totalResults===0) { %>
+                <p class="empty">
+                  <% if (searchQuery) { %>
+                    Try a broader search or clear the current filter.
+                    <% } else { %>
+                      No memorials stored for this cemetery yet.
+                      <% } %>
+                </p>
+                <% } else { %>
+                  <div class="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Years</th>
+                          <th>Birth city</th>
+                          <th>Death city</th>
+                          <th>Flags</th>
+                          <th>Map</th>
+                          <th>Source</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% memorials.forEach((memorial)=> { %>
+                          <tr>
+                            <td>
+                              <strong>
+                                <a href="/memorials/<%= memorial.memorial_id %>">
+                                  <%= memorial.full_name || "Unknown" %>
+                                </a>
+                              </strong>
+                              <div class="subtle">ID <%= memorial.memorial_id %>
+                              </div>
+                            </td>
+                            <td>
+                              <%= memorial.birth_year || "?" %> - <%= memorial.death_year || "?" %>
+                            </td>
+                            <td>
+                              <%= memorial.birth_city_name || "n/a" %>
+                            </td>
+                            <td>
+                              <%= memorial.death_city_name || "n/a" %>
+                            </td>
+                            <td>
+                              <% if (memorial.is_famous) { %><span class="pill">Famous</span>
+                                <% } %>
+                                  <% if (memorial.is_veteran) { %><span class="pill">Veteran</span>
+                                    <% } %>
+                            </td>
+                            <td>
+                              <% if (memorial.google_maps_link) { %>
+                                <a href="<%= memorial.google_maps_link %>" target="_blank" rel="noreferrer"
+                                  data-requires-internet>Open</a>
+                                <% } else { %>
+                                  n/a
+                                  <% } %>
+                            </td>
+                            <td>
+                              <a class="action-link"
+                                href="https://www.findagrave.com/memorial/<%= memorial.memorial_id %>" target="_blank"
+                                rel="noreferrer" data-requires-internet>FindAGrave</a>
+                            </td>
+                          </tr>
+                          <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="pagination-bar">
+                    <span class="subtle">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+                    <div class="pagination-links">
+                      <% if (pagination.hasPrevious) { %>
                         <a class="action-link"
-                          href="/cemeteries/<%= cemetery.cemetery_id %>?page=<%= pagination.page + 1 %><% if (searchQuery) { %>&q=<%= encodeURIComponent(searchQuery) %><% } %>">
-                          Next
+                          href="/cemeteries/<%= cemetery.cemetery_id %>?page=<%= pagination.page - 1 %><% if (searchQuery) { %>&q=<%= encodeURIComponent(searchQuery) %><% } %>">
+                          Previous
                         </a>
                         <% } %>
-                </div>
-              </div>
-              <% } %>
-        </section>
+                          <% if (pagination.hasNext) { %>
+                            <a class="action-link"
+                              href="/cemeteries/<%= cemetery.cemetery_id %>?page=<%= pagination.page + 1 %><% if (searchQuery) { %>&q=<%= encodeURIComponent(searchQuery) %><% } %>">
+                              Next
+                            </a>
+                            <% } %>
+                    </div>
+                  </div>
+                  <% } %>
+            </section>
       </main>
 
       <div class="modal-backdrop" id="importModal" hidden>

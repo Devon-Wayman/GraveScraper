@@ -9,4 +9,5 @@ async function removePhotoFiles(rows) {
   failures.forEach(result => console.error("Unable to remove deleted cleaning photo:", result.reason.message));
   return failures.length ? "The entry was deleted, but some image files could not be removed from storage. Check the upload folder’s permissions." : null;
 }
+
 module.exports = { removePhotoFiles };

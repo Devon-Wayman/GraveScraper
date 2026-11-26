@@ -113,6 +113,7 @@ async function searchLibraryOfCongress(profile, limit = 8) {
     c: String(limit),
     q: terms.filter(Boolean).join(" ")
   });
+
   const data = await fetchJson(`https://www.loc.gov/collections/chronicling-america/?${params.toString()}`);
 
   return (data.results ?? []).slice(0, limit).map((item) => {
