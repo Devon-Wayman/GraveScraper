@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      <%= memorial.full_name || "Memorial" %> | GraveScraper
+    </title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+
+  <body>
+    <%- include("partials/nav") %>
+      <main class="shell">
+        <a href="/cemeteries/<%= memorial.cemetery_id %>" class="back-link">Back to cemetery</a>
+
+        <section class="hero compact">
+          <div>
+            <p class="eyebrow">Memorial</p>
+            <h1>
+              <%= memorial.full_name || "Unknown" %>
+            </h1>
+            <p class="lede">
+              <a href="/cemeteries/<%= memorial.cemetery_id %>">
+                <%= memorial.cemetery_name %>
+              </a>
+              · ID <%= memorial.memorial_id %>
+            </p>
+            <div class="item-actions">
+              <a class="action-link" href="https://www.findagrave.com/memorial/<%= memorial.memorial_id %>"
+                target="_blank" rel="noreferrer" data-requires-internet>FindAGrave</a>
+              <% if (memorial.google_maps_link) { %>
+                <a class="action-link" href="<%= memorial.google_maps_link %>" target="_blank" rel="noreferrer"
+                  data-requires-internet>Map</a>
+                <% } %>
+            </div>
+          </div>
+        </section>
+
+        <% if (message) { %>
+          <div class="flash success">
+            <%= message %>
+          </div>
+          <% } %>
+
+            <% if (error) { %>
+              <div class="flash error">
+                <%= error %>
+              </div>
+              <% } %>
+
+                <%- include("partials/cleaning-history", { memorial, cleaningSessions, cleaningTimeline }) %>
+
+                <section class="grid">
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Local Notes</h2>
+                      <span>Stored in GraveScraper</span>
+                    </div>
+
+                    <form action="/memorials/<%= memorial.memorial_id %>" method="post" class="stacked-form">
+                      <div class="form-grid">
+                        <div>
+                          <label for="cleaningStatus">Cleaning status</label>
+                          <select id="cleaningStatus" name="cleaningStatus">
+                            <% fieldOptions.cleaningStatuses.forEach((option)=> { %>
+                              <option value="<%= option.value %>" <%=option.value===memorial.cleaning_status ? "selected"
+                                : "" %>>
+                                <%= option.label %>
+                              </option>
+                              <% }) %>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label for="familyRelation">Family relation</label>
+                          <select id="familyRelation" name="familyRelation">
+                            <% fieldOptions.familyRelations.forEach((option)=> { %>
+                              <option value="<%= option.value %>" <%=option.value===memorial.family_relation ? "selected"
+                                : "" %>>
+                                <%= option.label %>
+                              </option>
+                              <% }) %>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label for="visitPriority">Visit priority</label>
+                          <select id="visitPriority" name="visitPriority">
+                            <% fieldOptions.visitPriorities.forEach((option)=> { %>
+                              <option value="<%= option.value %>" <%=option.value===memorial.visit_priority ? "selected"
+                                : "" %>>
+                                <%= option.label %>
+                              </option>
+                              <% }) %>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label for="researchStatus">Research status</label>
+                          <select id="researchStatus" name="researchStatus">
+                            <% fieldOptions.researchStatuses.forEach((option)=> { %>
+                              <option value="<%= option.value %>" <%=option.value===memorial.research_status ? "selected"
+                                : "" %>>
+                                <%= option.label %>
+                              </option>
+                              <% }) %>
+                          </select>
+                        </div>
+                      </div>
+
+                      <label for="userNotes">Notes</label>
+                      <textarea id="userNotes" name="userNotes" rows="10"
+                        placeholder="Add visit notes, research details, cleaning observations, or family context."><%= memorial.user_notes || "" %></textarea>
+
+                      <button type="submit">Save notes</button>
+                    </form>
+                  </article>
+
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Imported Details</h2>
+                      <span>FindAGrave data</span>
+                    </div>
+
+                    <dl class="detail-list">
+                      <div>
+                        <dt>Years</dt>
+                        <dd>
+                          <%= memorial.birth_year || "?" %> - <%= memorial.death_year || "?" %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Birth</dt>
+                        <dd>
+                          <%= memorial.birth_date || "n/a" %>
+                          <% if (memorial.birth_city_name) { %>
+                            · <%= memorial.birth_city_name %>
+                              <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Death</dt>
+                        <dd>
+                          <%= memorial.death_date || "n/a" %>
+                          <% if (memorial.death_city_name) { %>
+                            · <%= memorial.death_city_name %>
+                              <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Flags</dt>
+                        <dd>
+                          <% if (memorial.is_famous) { %><span class="pill">Famous</span>
+                            <% } %>
+                              <% if (memorial.is_veteran) { %><span class="pill">Veteran</span>
+                                <% } %>
+                                  <% if (!memorial.is_famous && !memorial.is_veteran) { %>
+                                    n/a
+                                    <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Coordinates</dt>
+                        <dd>
+                          <% if (memorial.latitude !== null && memorial.longitude !== null) { %>
+                            <%= memorial.latitude %>, <%= memorial.longitude %>
+                              <% } else { %>
+                                n/a
+                                <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>FindAGrave modified</dt>
+                        <dd>
+                          <%= memorial.findagrave_date_modified || "n/a" %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Memorial contributor</dt>
+                        <dd>
+                          <% if (memorial.memorial_contributor_id) { %>
+                            <a href="https://www.findagrave.com/user/profile/<%= memorial.memorial_contributor_id %>"
+                              target="_blank" rel="noreferrer" data-requires-internet>
+                              <%= memorial.memorial_contributor_id %>
+                            </a>
+                            <% } else { %>
+                              n/a
+                              <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Created by</dt>
+                        <dd>
+                          <% if (memorial.creator_contributor_id) { %>
+                            <a href="https://www.findagrave.com/user/profile/<%= memorial.creator_contributor_id %>"
+                              target="_blank" rel="noreferrer" data-requires-internet>
+                              <%= memorial.creator_contributor_id %>
+                            </a>
+                            <% } else { %>
+                              n/a
+                              <% } %>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Photo contributors</dt>
+                        <dd>
+                          <% if (memorial.photo_contributor_ids && memorial.photo_contributor_ids.length > 0) { %>
+                            <%= memorial.photo_contributor_ids.join(", ") %>
+                              <% } else { %>
+                                n/a
+                                <% } %>
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                </section>
+
+                <details class="archival-research">
+                  <summary>Optional archival research</summary>
+                <section class="panel research-panel">
+                  <div class="panel-header">
+                    <div>
+                      <h2>Research Leads</h2>
+                      <span>Search open online resources, then approve only the matches you trust.</span>
+                    </div>
+                    <form action="/memorials/<%= memorial.memorial_id %>/research" method="post"
+                      class="research-provider-form">
+                      <select name="provider" aria-label="Research provider" required>
+                        <% researchProviders.forEach((provider)=> { %>
+                          <option value="<%= provider.key %>">
+                            <%= provider.label %>
+                          </option>
+                          <% }) %>
+                      </select>
+                      <button type="submit" data-requires-internet>Find leads</button>
+                    </form>
+                  </div>
+
+                  <% if (researchLeads.length > 0) { %>
+                    <div class="research-list">
+                      <% researchLeads.forEach((lead)=> { %>
+                        <article class="research-lead">
+                          <div>
+                            <div class="research-lead-title">
+                              <h3>
+                                <% if (lead.url) { %>
+                                  <a href="<%= lead.url %>" target="_blank" rel="noreferrer" data-requires-internet>
+                                    <%= lead.title %>
+                                  </a>
+                                  <% } else { %>
+                                    <%= lead.title %>
+                                      <% } %>
+                              </h3>
+                              <span class="pill">
+                                <%= lead.status %>
+                              </span>
+                            </div>
+                            <p class="lede small">
+                              <%= lead.snippet || "No summary returned." %>
+                            </p>
+                            <div class="research-meta">
+                              <span>
+                                <%= lead.provider %>
+                              </span>
+                              <% if (lead.source_type) { %><span>
+                                  <%= lead.source_type %>
+                                </span>
+                                <% } %>
+                                  <% if (lead.source_date) { %><span>
+                                      <%= lead.source_date %>
+                                    </span>
+                                    <% } %>
+                                      <span>
+                                        <%= Math.round((lead.confidence || 0) * 100) %>% confidence
+                                      </span>
+                            </div>
+                            <% if (lead.matched && lead.matched.length > 0) { %>
+                              <p class="subtle">Matched: <%= lead.matched.join(", ") %>
+                              </p>
+                              <% } %>
+                          </div>
+                          <div class="research-actions">
+                            <% if (lead.status === "pending") { %>
+                              <form action="/research/leads/<%= lead.lead_id %>/approve" method="post"
+                                class="inline-form">
+                                <button type="submit" class="compact-button">Approve</button>
+                              </form>
+                              <form action="/research/leads/<%= lead.lead_id %>/reject" method="post"
+                                class="inline-form">
+                                <button type="submit" class="secondary-button compact-button">Reject</button>
+                              </form>
+                              <% } else if (lead.approved_source_id) { %>
+                                <span class="subtle">Saved as source <%= lead.approved_source_id %></span>
+                                <% } %>
+                          </div>
+                        </article>
+                        <% }) %>
+                    </div>
+                    <% } else { %>
+                      <p class="empty">No online research leads have been collected for this memorial yet.</p>
+                      <% } %>
+                </section>
+
+                <section class="grid">
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Approved Sources</h2>
+                      <span>
+                        <%= researchSources.length %> saved
+                      </span>
+                    </div>
+                    <% if (researchSources.length > 0) { %>
+                      <div class="research-list compact">
+                        <% researchSources.forEach((source)=> { %>
+                          <div class="research-source">
+                            <strong>
+                              <% if (source.url) { %>
+                                <a href="<%= source.url %>" target="_blank" rel="noreferrer" data-requires-internet>
+                                  <%= source.title %>
+                                </a>
+                                <% } else { %>
+                                  <%= source.title %>
+                                    <% } %>
+                            </strong>
+                            <span class="subtle">
+                              <%= source.source_type || "source" %> · <%= Math.round((source.confidence || 0) * 100) %>%
+                                confidence
+                            </span>
+                          </div>
+                          <% }) %>
+                      </div>
+                      <% } else { %>
+                        <p class="empty">Approved research leads will appear here.</p>
+                        <% } %>
+                  </article>
+
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Claims to Review</h2>
+                      <span>
+                        <%= researchClaims.length %> claims
+                      </span>
+                    </div>
+                    <% if (researchClaims.length > 0) { %>
+                      <div class="research-list compact">
+                        <% researchClaims.forEach((claim)=> { %>
+                          <div class="research-source">
+                            <strong>
+                              <%= claim.claim_text %>
+                            </strong>
+                            <span class="subtle">
+                              <%= claim.status %> · <%= Math.round((claim.confidence || 0) * 100) %>% confidence
+                            </span>
+                          </div>
+                          <% }) %>
+                      </div>
+                      <% } else { %>
+                        <p class="empty">Approving a lead creates a claim you can verify later.</p>
+                        <% } %>
+                  </article>
+                </section>
+                </details>
+      </main>
+  </body>
+
+</html>

@@ -1,0 +1,22 @@
+<section class="panel active-cleaning-panel" id="active-cleaning">
+  <div class="cleaning-hub-header"><div><p class="eyebrow">Your ongoing projects</p><h2>Active cleaning</h2><p class="subtle"><%= activeCleaning.totalActive %> graves across your cemeteries</p></div></div>
+  <p class="hint">Graves with cleaning history appear automatically. Use the project status on a memorial to track a new grave, monitor progress, pause it, or mark it complete.</p>
+  <form method="get" action="/#active-cleaning" class="filter-bar">
+    <div class="filter-field"><label for="activeSearch">Search active graves</label><input id="activeSearch" name="activeSearch" type="search" maxlength="200" value="<%= activeCleaning.search %>" placeholder="Name, cemetery, or memorial ID" /></div>
+    <div class="filter-actions"><button type="submit">Search active graves</button><% if (activeCleaning.search) { %><a href="/#active-cleaning">Clear search</a><% } %></div>
+  </form>
+  <% if (!activeCleaning.totalActive) { %>
+    <p class="empty">No active projects yet. Open a memorial and start a pre-cleaning record, or set its project status to Active cleaning.</p>
+  <% } else if (!activeCleaning.total) { %>
+    <p class="empty">No active graves match this search. Try a name, cemetery, or memorial ID.</p>
+  <% } else { %>
+    <p class="subtle"><%= activeCleaning.total %> matching graves</p>
+    <div class="active-cleaning-grid"><% activeCleaning.memorials.forEach(grave => { %>
+      <article class="active-grave-card">
+        <div><span class="pill"><%= grave.work_status === 'monitoring' ? 'Monitoring / follow-up' : 'Active cleaning' %></span><h3><a href="/memorials/<%= grave.memorial_id %>#cleaning-history"><%= grave.full_name || 'Unknown name' %></a></h3><p><a href="/cemeteries/<%= grave.cemetery_id %>"><%= grave.cemetery_name %></a></p><p class="subtle"><%= grave.last_activity_date ? 'Last recorded update: ' + grave.last_activity_date : 'No visits recorded yet' %> · ID <%= grave.memorial_id %></p></div>
+        <div class="active-grave-actions"><a class="action-link" href="/memorials/<%= grave.memorial_id %>#cleaning-history">Open timeline</a><% if (grave.google_maps_link) { %><a class="action-link" href="<%= grave.google_maps_link %>" target="_blank" rel="noreferrer" data-requires-internet>Map</a><% } %><form method="post" action="/memorials/<%= grave.memorial_id %>/cleaning-project" class="inline-form"><input type="hidden" name="cleaningWorkStatus" value="complete" /><input type="hidden" name="returnTo" value="dashboard" /><button type="submit" class="text-button">Mark complete</button></form></div>
+      </article>
+    <% }) %></div>
+    <% if (activeCleaning.totalPages > 1) { %><nav class="pagination-bar" aria-label="Active cleaning pages"><span>Page <%= activeCleaning.page %> of <%= activeCleaning.totalPages %></span><div class="pagination-links"><% if (activeCleaning.page > 1) { %><a href="/?activeSearch=<%= encodeURIComponent(activeCleaning.search) %>&activePage=<%= activeCleaning.page - 1 %>#active-cleaning">Previous</a><% } %><% if (activeCleaning.page < activeCleaning.totalPages) { %><a href="/?activeSearch=<%= encodeURIComponent(activeCleaning.search) %>&activePage=<%= activeCleaning.page + 1 %>#active-cleaning">Next</a><% } %></div></nav><% } %>
+  <% } %>
+</section>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= memorial.full_name || "Memorial" %> — Cleaning progress</title>
+  <style>
+    body { font: 17px/1.55 system-ui, sans-serif; color: #26392f; background: #f8f6f0; margin: 0; }
+    main { max-width: 850px; margin: auto; padding: 24px; }
+    h1 { line-height: 1.2; } a { color: #23563d; } button, .actions a { display: inline-block; padding: 12px; font: inherit; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .event { border-left: 3px solid #62826c; padding: 0 0 30px 24px; margin-left: 8px; }
+    .event h2 { font-size: 1.2em; margin: 0 0 8px; } .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+    img { display: block; max-width: 100%; max-height: 650px; object-fit: contain; margin: 12px 0; }
+    .muted { color: #56665c; } .meta { font-size: .9em; } .empty { padding: 24px 0; }
+    @media print { body { background: white; font-size: 11pt; } main { max-width: none; padding: 0; } .actions { display: none; } .event { break-inside: avoid; } img { max-height: 6in; } }
+  </style>
+</head>
+<body><main>
+  <div class="actions">
+    <% if (!offline) { %><a href="/memorials/<%= memorial.memorial_id %>">Back to memorial</a><a href="/memorials/<%= memorial.memorial_id %>/cleaning-progress.zip">Export report &amp; ordered photos (ZIP)</a><% } %>
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+  </div>
+  <p class="muted">Cleaning progress report</p>
+  <h1><%= memorial.full_name || "Unknown" %></h1>
+  <p><%= memorial.cemetery_name %> · Memorial <%= memorial.memorial_id %></p>
+  <p><%= events.filter(event => event.type === "session").length %> entries · <%= events.filter(event => event.type === "photo").length %> photos · Oldest first</p>
+  <% if (!events.length) { %><p class="empty">No cleaning sessions or photos have been recorded yet.</p><% } %>
+  <% events.forEach(event => { %>
+    <article class="event">
+      <h2><time datetime="<%= event.date %>"><%= event.date %></time><% if (event.time) { %> <%= event.time %><% } %> · <%= event.type === "session" ? event.entry_type === "pre-cleaning" ? "Pre-cleaning record" : "Cleaning session" : event.stage === "during" ? "Progress / follow-up" : event.stage %></h2>
+      <% if (event.type === "session") { %>
+        <% if (event.methods) { %><p class="text"><strong><%= event.entry_type === "pre-cleaning" ? "Planned methods / materials:" : "Methods & materials:" %></strong> <%= event.methods %></p><% } %>
+        <% if (event.notes) { %><p class="text"><%= event.notes %></p><% } %>
+      <% } else { %>
+        <p class="muted meta"><%= event.entry_type === "pre-cleaning" ? "Baseline visit:" : "Cleaning visit:" %> <%= event.visit_date %> · Date: <%= event.date_source === "exif" ? "camera metadata" : "entered / confirmed manually" %></p>
+        <img src="<%= event.url %>" alt="<%= event.caption || event.stage + ' cleaning photo' %>" />
+        <% if (event.caption) { %><p class="text"><%= event.caption %></p><% } %>
+      <% } %>
+    </article>
+  <% }) %>
+</main></body>
+</html>

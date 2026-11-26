@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grave Scraper</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+
+  <body>
+    <%- include("partials/nav") %>
+      <main class="shell">
+        <section class="hero">
+          <div>
+            <h1>Grave Scraper</h1>
+            <p class="lede">
+              A self contained node application that allows the user to keep a local copy of FindAGrave memorial data
+              along with personal notes. These can be used to manage cleaning, ancestory, etc.
+            </p>
+          </div>
+
+          <form action="/imports" method="post" class="panel" id="importForm">
+            <label for="cemeteryUrl">FindAGrave cemetery URL</label>
+            <input id="cemeteryUrl" name="cemeteryUrl" type="url"
+              placeholder="https://www.findagrave.com/cemetery/12345/example-cemetery" required />
+            <button type="submit">Import cemetery</button>
+            <p class="hint">
+              Import a cemetery to browse its memorials and track your cleaning projects.
+            </p>
+          </form>
+        </section>
+
+        <% if (message) { %>
+          <div class="flash success">
+            <%= message %>
+          </div>
+          <% } %>
+
+            <% if (error) { %>
+              <div class="flash error">
+                <%= error %>
+              </div>
+              <% } %>
+
+                <%- include("partials/active-cleaning", { activeCleaning }) %>
+
+                <section class="grid">
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Cemeteries</h2>
+                      <span>
+                        <%= cemeteries.length %> stored
+                      </span>
+                    </div>
+
+                    <% if (cemeteries.length===0) { %>
+                      <p class="empty">No cemeteries imported yet.</p>
+                      <% } else { %>
+                        <div class="export-actions">
+                          <span class="subtle">All memorials</span>
+                          <a class="action-link" href="/exports/memorials.csv">CSV</a>
+                          <a class="action-link" href="/exports/memorials.kml">KML</a>
+                          <a class="action-link" href="/exports/memorials.xml">XML</a>
+                        </div>
+                        <div class="list">
+                          <% cemeteries.forEach((cemetery)=> { %>
+                            <div class="list-item">
+                              <a class="item-title" href="/cemeteries/<%= cemetery.cemetery_id %>">
+                                <%= cemetery.cemetery_name %>
+                              </a>
+                              <span>ID <%= cemetery.cemetery_id %></span>
+                              <span>
+                                <%= cemetery.stored_memorials %> memorials stored
+                              </span>
+                              <div class="item-actions">
+                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.csv">CSV</a>
+                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.kml">KML</a>
+                                <a class="action-link" href="/cemeteries/<%= cemetery.cemetery_id %>/export.xml">XML</a>
+                                <form action="/cemeteries/<%= cemetery.cemetery_id %>/delete" method="post"
+                                  class="inline-form">
+                                  <button type="submit" class="danger-button compact-button"
+                                    data-cemetery-name="<%= cemetery.cemetery_name %>"
+                                    onclick="return confirm(`Delete ${this.dataset.cemeteryName}, its memorials, cleaning history, and uploaded photos?`);">
+                                    Delete
+                                  </button>
+                                </form>
+                              </div>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                  </article>
+
+                  <article class="panel">
+                    <div class="panel-header">
+                      <h2>Recent imports</h2>
+                      <span>
+                        <%= imports.length %> runs
+                      </span>
+                    </div>
+
+                    <% if (imports.length===0) { %>
+                      <p class="empty">No imports have run yet.</p>
+                      <% } else { %>
+                        <div class="list">
+                          <% imports.forEach((item)=> { %>
+                            <div class="list-item static">
+                              <strong>
+                                <%= item.cemetery_name %>
+                              </strong>
+                              <span>
+                                <%= item.status %> at <%= item.started_at %>
+                              </span>
+                              <span>
+                                <%= item.message || "No message" %>
+                              </span>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                  </article>
+                </section>
+      </main>
+
+      <div class="modal-backdrop" id="importModal" hidden>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+          <p class="eyebrow">Import in progress</p>
+          <h2 id="importModalTitle">Syncing cemetery data</h2>
+          <p class="lede" id="importStepText">
+            Preparing import request.
+          </p>
+
+          <div class="progress-meta">
+            <span id="importStatusLabel">Starting</span>
+            <span id="importCountLabel">0 / 0 memorials</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="importProgressFill"></div>
+          </div>
+
+          <div class="modal-log" id="importMessageText">
+            Waiting for the server to begin processing.
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="importCloseButton" class="secondary-button" hidden>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <script src="/app.js"></script>
+  </body>
+
+</html>

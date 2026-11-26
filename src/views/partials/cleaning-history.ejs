@@ -1,0 +1,131 @@
+<%
+  const photoCount = cleaningTimeline.filter(event => event.type === 'photo').length;
+  const orderedSessions = [...cleaningSessions].sort((a, b) => {
+    const latest = session => session.photos.reduce((date, photo) => photo.photo_date > date ? photo.photo_date : date, session.visit_date);
+    return latest(b).localeCompare(latest(a)) || b.session_id - a.session_id;
+  });
+  const firstEntry = cleaningSessions.find(session => session.entry_type === 'pre-cleaning');
+  const initialRecord = cleaningSessions.length === 0;
+  const stageLabel = stage => ({ before: 'Before', during: 'Progress / follow-up', after: 'After', general: 'General' }[stage]);
+%>
+<section class="panel cleaning-hub" id="cleaning-history">
+  <div class="cleaning-hub-header">
+    <div><p class="eyebrow">Cleaning history</p><h2>Progress timeline</h2><p class="subtle"><%= cleaningSessions.length %> entries · <%= photoCount %> photos · Newest first</p></div>
+    <div class="cleaning-hub-actions">
+      <button type="button" data-open-dialog="new-session-dialog"><%= initialRecord ? "Add pre-cleaning record" : "New cleaning session" %></button>
+      <% if (cleaningSessions.length) { %><button type="button" class="secondary-button" data-open-dialog="upload-photos-dialog" data-stage="<%= cleaningSessions[0].entry_type === 'pre-cleaning' ? 'before' : 'during' %>">Add check-in / photos</button><% } %>
+    </div>
+  </div>
+  <form method="post" action="/memorials/<%= memorial.memorial_id %>/cleaning-project" class="cleaning-project-form">
+    <label for="cleaningWorkStatus">Cleaning project</label><select id="cleaningWorkStatus" name="cleaningWorkStatus"><% fieldOptions.cleaningWorkStatuses.forEach(option => { %><option value="<%= option.value %>" <%= memorial.cleaning_work_status === option.value ? 'selected' : '' %>><%= option.label %></option><% }) %></select><button type="submit" class="secondary-button compact-button">Update status</button>
+    <a href="/#active-cleaning">View active projects</a>
+  </form>
+  <div class="cleaning-report-links"><a href="/memorials/<%= memorial.memorial_id %>/timeline">Print progress report</a><a href="/memorials/<%= memorial.memorial_id %>/cleaning-progress.zip">Export report &amp; photos</a></div>
+  <% if (!cleaningSessions.length) { %>
+    <div class="cleaning-empty"><h3>Start this memorial’s cleaning history</h3><p>Start with a pre-cleaning record of the memorial’s initial condition. Photos are optional. Add a separate cleaning session when work begins, then check back in as the stone changes.</p><button type="button" data-open-dialog="new-session-dialog">Record pre-cleaning condition</button></div>
+  <% } else { %>
+    <p class="hint">Expand a cleaning entry to see its notes and dated photo updates. Each update keeps its photos together.</p>
+    <div class="memorial-timeline">
+      <% orderedSessions.forEach(session => {
+        const updates = new Map();
+        [...session.photos].reverse().forEach(photo => {
+          const key = photo.photo_date + ':' + photo.stage;
+          if (!updates.has(key)) updates.set(key, { date: photo.photo_date, stage: photo.stage, photos: [] });
+          updates.get(key).photos.push(photo);
+        });
+        const latestDate = session.photos.reduce((date, photo) => photo.photo_date > date ? photo.photo_date : date, session.visit_date);
+      %>
+        <details class="timeline-session" id="session-<%= session.session_id %>" data-session-id="<%= session.session_id %>">
+          <summary class="timeline-session-summary"><span class="timeline-summary-title"><strong><%= session.entry_type === 'pre-cleaning' ? 'Pre-cleaning record' : 'Cleaning session' %></strong><time datetime="<%= session.visit_date %>"><%= session.visit_date %></time></span><span class="timeline-summary-meta"><%= session.photos.length %> photos · <%= updates.size %> photo updates<span class="subtle">Latest update: <%= latestDate %></span></span></summary>
+          <div class="timeline-session-body">
+            <div class="timeline-card-actions"><button type="button" class="text-button" data-open-dialog="edit-session-<%= session.session_id %>">Edit entry</button><button type="button" class="text-button" data-open-dialog="upload-photos-dialog" data-session-id="<%= session.session_id %>" data-stage="<%= session.entry_type === 'pre-cleaning' ? 'before' : 'during' %>">Add check-in / photos</button><button type="button" class="text-button danger-text" data-open-dialog="delete-session-<%= session.session_id %>">Delete entry</button></div>
+            <% if (session.methods) { %><p class="preserve-lines"><strong><%= session.entry_type === 'pre-cleaning' ? 'Planned methods / materials:' : 'Methods & materials:' %></strong> <%= session.methods %></p><% } %>
+            <% if (session.notes) { %><p class="preserve-lines"><%= session.notes %></p><% } %>
+            <% if (!session.photos.length) { %><p class="hint">No photos added to this entry yet.</p><% } %>
+            <% updates.forEach(update => { %>
+              <details class="timeline-update" data-update-date="<%= update.date %>" data-update-stage="<%= update.stage %>">
+                <summary><span><time datetime="<%= update.date %>"><%= update.date %></time> · <%= stageLabel(update.stage) %></span><span class="subtle"><%= update.photos.length %> photo(s)</span></summary>
+                <div class="timeline-photo-grid">
+                  <% update.photos.forEach(photo => { %>
+                    <figure class="timeline-photo-card" id="photo-<%= photo.photo_id %>" data-photo-id="<%= photo.photo_id %>">
+                      <a href="<%= photo.url %>" target="_blank" rel="noreferrer"><img src="<%= photo.thumbnail_url %>" alt="<%= photo.caption || stageLabel(photo.stage) + ' cleaning photo' %>" loading="lazy" /></a>
+                      <figcaption><% if (photo.captured_at && photo.captured_at.startsWith(photo.photo_date)) { %><span class="subtle"><%= photo.captured_at.slice(11) %></span><% } %><% if (photo.caption) { %><p class="preserve-lines"><%= photo.caption %></p><% } %><button type="button" class="text-button" data-open-dialog="edit-photo-<%= photo.photo_id %>">Edit photo details</button></figcaption>
+                    </figure>
+                  <% }) %>
+                </div>
+              </details>
+            <% }) %>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<dialog class="cleaning-dialog" id="new-session-dialog" aria-labelledby="new-session-title">
+  <header class="cleaning-dialog-header"><div><p class="eyebrow">Record a visit</p><h2 id="new-session-title"><%= initialRecord ? "Pre-cleaning record" : "New cleaning session" %></h2></div><button type="button" class="dialog-close" data-close-dialog aria-label="Close new cleaning session">×</button></header>
+  <p class="hint"><%= initialRecord ? "Record the memorial’s condition before any cleaning. You can save this without photos and add them later." : "Use this for a new cleaning. To document changes after an earlier cleaning, choose Add check-in / photos instead." %></p>
+  <form method="post" action="/memorials/<%= memorial.memorial_id %>/cleaning-sessions" class="stacked-form">
+    <label for="visitDate"><%= initialRecord ? "Observation date" : "Cleaning date" %></label><input id="visitDate" name="visitDate" type="date" required data-local-date />
+    <label for="sessionMethods"><%= initialRecord ? "Planned methods / materials (optional)" : "Methods & materials used" %></label><textarea id="sessionMethods" name="methods" rows="3" maxlength="10000" placeholder="<%= initialRecord ? 'Optional plans for future cleaning' : 'What did you use on this visit?' %>"></textarea>
+    <label for="sessionNotes"><%= initialRecord ? "Initial condition" : "Visit notes" %></label><textarea id="sessionNotes" name="notes" rows="4" maxlength="10000" placeholder="Condition, work completed, and observations"></textarea>
+    <footer class="dialog-form-actions"><button type="button" class="secondary-button" data-close-dialog>Cancel</button><button type="submit" class="secondary-button">Save session</button><button type="submit" name="next" value="photos">Save &amp; add photos</button></footer>
+  </form>
+</dialog>
+
+<% if (cleaningSessions.length) { %>
+<dialog class="cleaning-dialog" id="upload-photos-dialog" aria-labelledby="upload-photos-title">
+  <header class="cleaning-dialog-header"><div><p class="eyebrow">Document progress</p><h2 id="upload-photos-title">Add check-in / photos</h2></div><button type="button" class="dialog-close" data-close-dialog aria-label="Close photo upload">×</button></header>
+  <p class="hint">Add initial photos, another angle, or a follow-up weeks later. Select the baseline or cleaning entry these photos belong to.</p>
+  <form method="post" enctype="multipart/form-data" action="/cleaning-sessions/<%= cleaningSessions[0].session_id %>/photos" class="stacked-form photo-upload-form">
+    <label for="uploadSession">Baseline / cleaning entry</label><select id="uploadSession" data-upload-session required><% cleaningSessions.forEach(session => { %><option value="<%= session.session_id %>" data-entry-type="<%= session.entry_type %>" data-photo-count="<%= session.photos.length %>"><%= session.visit_date %> · <%= session.entry_type === "pre-cleaning" ? "Pre-cleaning record — " : "" %><%= session.methods ? session.methods.slice(0, 65) : 'Cleaning visit' %></option><% }) %></select>
+    <label for="progressPhotos">Choose photos</label><input id="progressPhotos" name="photo" type="file" accept="image/heic,image/heif,.heic,.heif,image/jpeg,image/png,image/webp" multiple required />
+    <p class="hint">Up to 20 photos, 20 MB each. HEIC, HEIF, JPEG, PNG, or WebP. Photos are saved as compressed JPEGs.</p>
+    <div class="form-grid"><div><label for="progressStage">Photo stage</label><select id="progressStage" name="stage"><% ['before', 'during', 'after', 'general'].forEach(stage => { %><option value="<%= stage %>" <%= stage === 'during' ? 'selected' : '' %>><%= stageLabel(stage) %></option><% }) %></select></div><div><label for="progressDate">Override photo date (optional)</label><input id="progressDate" name="photoDate" type="date" /></div></div>
+    <p class="hint capture-date-status" aria-live="polite">Leave the date blank to use each photo’s capture date. An override applies to all selected photos.</p><ul class="capture-date-list"></ul>
+    <label for="progressCaption">Check-in notes / caption</label><textarea id="progressCaption" name="caption" rows="3" maxlength="2000" placeholder="For example: Two-week follow-up, front and side views"></textarea>
+    <p class="hint">Stage and caption apply to the batch; individual photo details remain editable.</p>
+    <p class="upload-status" role="status" aria-live="polite"></p><footer class="dialog-form-actions"><button type="button" class="secondary-button" data-close-dialog>Cancel</button><button type="submit" data-upload-submit>Upload photos</button></footer>
+  </form>
+</dialog>
+<% } %>
+
+<% cleaningSessions.forEach(session => { %>
+<dialog class="cleaning-dialog" id="edit-session-<%= session.session_id %>" aria-labelledby="edit-session-title-<%= session.session_id %>">
+  <header class="cleaning-dialog-header"><h2 id="edit-session-title-<%= session.session_id %>"><%= session.entry_type === "pre-cleaning" ? "Edit pre-cleaning record" : "Edit cleaning session" %></h2><button type="button" class="dialog-close" data-close-dialog aria-label="Close session editor">×</button></header>
+  <form method="post" action="/cleaning-sessions/<%= session.session_id %>" class="stacked-form">
+    <label for="date-<%= session.session_id %>"><%= session.entry_type === "pre-cleaning" ? "Observation date" : "Cleaning date" %></label><input id="date-<%= session.session_id %>" name="visitDate" type="date" value="<%= session.visit_date %>" required />
+    <label for="methods-<%= session.session_id %>"><%= session.entry_type === "pre-cleaning" ? "Planned methods / materials" : "Methods & materials" %></label><textarea id="methods-<%= session.session_id %>" name="methods" rows="3" maxlength="10000"><%= session.methods %></textarea>
+    <label for="notes-<%= session.session_id %>">Visit notes</label><textarea id="notes-<%= session.session_id %>" name="notes" rows="4" maxlength="10000"><%= session.notes %></textarea>
+    <footer class="dialog-form-actions"><button type="button" class="text-button danger-text" data-open-dialog="delete-session-<%= session.session_id %>">Delete entry</button><button type="button" class="secondary-button" data-close-dialog>Cancel</button><button type="submit">Save changes</button></footer>
+  </form>
+</dialog>
+<dialog class="cleaning-dialog" id="delete-session-<%= session.session_id %>" aria-labelledby="delete-session-title-<%= session.session_id %>">
+  <header class="cleaning-dialog-header"><h2 id="delete-session-title-<%= session.session_id %>">Delete cleaning session?</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Close deletion confirmation">×</button></header>
+  <p>This permanently deletes the cleaning entry for <strong><%= session.visit_date %></strong>, its notes, and <strong><%= session.photos.length %> attached photo(s)</strong>, including any follow-up photos linked to it. This cannot be undone.</p>
+  <% if (session.methods) { %><p class="preserve-lines"><strong>Methods:</strong> <%= session.methods %></p><% } %>
+  <% if (session.notes) { %><p class="preserve-lines"><%= session.notes %></p><% } %>
+  <form method="post" action="/cleaning-sessions/<%= session.session_id %>/delete" class="stacked-form"><input type="hidden" name="confirmation" value="delete" /><footer class="dialog-form-actions"><button type="button" class="secondary-button" data-close-dialog autofocus>Keep session</button><button type="submit" class="danger-button">Delete entry &amp; photos</button></footer></form>
+</dialog>
+<% session.photos.forEach(photo => { %>
+<dialog class="cleaning-dialog" id="edit-photo-<%= photo.photo_id %>" aria-labelledby="edit-photo-title-<%= photo.photo_id %>">
+  <header class="cleaning-dialog-header"><h2 id="edit-photo-title-<%= photo.photo_id %>">Edit photo details</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Close photo editor">×</button></header>
+  <form method="post" action="/photos/<%= photo.photo_id %>" class="stacked-form">
+    <label for="edit-photo-date-<%= photo.photo_id %>">Observation date</label><input id="edit-photo-date-<%= photo.photo_id %>" name="photoDate" type="date" value="<%= photo.photo_date %>" required />
+    <label for="edit-stage-<%= photo.photo_id %>">Photo stage</label><select id="edit-stage-<%= photo.photo_id %>" name="stage"><% ['before', 'during', 'after', 'general'].forEach(stage => { %><option value="<%= stage %>" <%= stage === photo.stage ? 'selected' : '' %>><%= stageLabel(stage) %></option><% }) %></select>
+    <label for="edit-caption-<%= photo.photo_id %>">Caption</label><textarea id="edit-caption-<%= photo.photo_id %>" name="caption" maxlength="2000" rows="3"><%= photo.caption %></textarea>
+    <footer class="dialog-form-actions"><button type="button" class="text-button danger-text" data-open-dialog="delete-photo-<%= photo.photo_id %>">Delete photo</button><button type="button" class="secondary-button" data-close-dialog>Cancel</button><button type="submit">Save changes</button></footer>
+  </form>
+</dialog>
+<dialog class="cleaning-dialog" id="delete-photo-<%= photo.photo_id %>" aria-labelledby="delete-photo-title-<%= photo.photo_id %>">
+  <header class="cleaning-dialog-header"><h2 id="delete-photo-title-<%= photo.photo_id %>">Delete this photo?</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Close photo deletion confirmation">×</button></header>
+  <p>Permanently delete this <strong><%= stageLabel(photo.stage) %></strong> photo dated <strong><%= photo.photo_date %></strong>? The cleaning session and other photos will remain. This cannot be undone.</p>
+  <img class="delete-photo-preview" src="<%= photo.thumbnail_url %>" alt="<%= photo.caption || 'Photo to delete' %>" loading="lazy" />
+  <% if (photo.caption) { %><p class="preserve-lines"><%= photo.caption %></p><% } %>
+  <form method="post" action="/photos/<%= photo.photo_id %>/delete" class="stacked-form"><input type="hidden" name="confirmation" value="delete" /><footer class="dialog-form-actions"><button type="button" class="secondary-button" data-close-dialog autofocus>Keep photo</button><button type="submit" class="danger-button">Delete photo</button></footer></form>
+</dialog>
+<% }) %>
+<% }) %>
+<noscript><p>Enable JavaScript to open the session and photo dialogs. The progress report remains available above.</p></noscript>
+<script src="/photo-metadata.js" defer></script>
+<script src="/cleaning.js" defer></script>
